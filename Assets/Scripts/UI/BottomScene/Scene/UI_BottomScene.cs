@@ -13,6 +13,8 @@ public class UI_BottomScene : MonoBehaviour
     private float currTime = START_TIME;     // 현재 타이머 수치
     private int currWave = 1;               // 현재 웨이브
 
+    private int currSP = 0;                     // 현재 보유 중인 SP
+
     public float CurrTime
     {
         get => currTime;
@@ -25,6 +27,19 @@ public class UI_BottomScene : MonoBehaviour
         }
     }
 
+    public int CurrSP
+    {
+        get => currSP;
+        set
+        {
+            currSP = value;
+
+            // UI 처리
+            obj_Spawn_Left?.SetSPText(currSP);
+        }
+    }
+
+    private Obj_Spawn_Left obj_Spawn_Left;      // 보유 중인 SP, SP Lv
     private Obj_Spawn_Right obj_Spawn_Right;    // 타이머, 생성 버튼
 
     // 코루틴
@@ -39,7 +54,8 @@ public class UI_BottomScene : MonoBehaviour
     // 상수
     private const int UPGRADE_COUNT = 5;    // 업그레이드 주사위 개수
     private const float START_TIME = 5f;    // 초기 타이머 수치
-    private const float BASE_TIME = 15f;  // 기본 타이머 수치
+    private const float BASE_TIME = 13f;  // 기본 타이머 수치
+    private const int BASE_GET_SP = 150;    // 웨이브 마다 생성되는 SP
 
     private void Awake()
     {
@@ -86,8 +102,11 @@ public class UI_BottomScene : MonoBehaviour
         {
             if(slider_Timer.value <= 0f)
             {
+                // 다음 웨이브 진행
                 currWave++;
                 CurrTime = (currWave == 1 ? START_TIME : BASE_TIME);
+                CurrSP += BASE_GET_SP;
+
                 nextWaveTimer = null;
                 Init_Timer();
                 break;
@@ -106,11 +125,15 @@ public class UI_BottomScene : MonoBehaviour
     /// </summary>
     private void Init_SpawnGroup()
     {
-        Instantiate(prefab_spawn_left, Vector3.zero, Quaternion.identity, obj_SpawnGroup);
+        obj_Spawn_Left = Instantiate(prefab_spawn_left, Vector3.zero, Quaternion.identity, obj_SpawnGroup).GetComponent<Obj_Spawn_Left>();
+        obj_Spawn_Left.Init();
+
+        CurrSP = 0;
+
         Instantiate(prefab_spawnBoard, Vector3.zero, Quaternion.identity, obj_SpawnGroup);
 
         obj_Spawn_Right = Instantiate(prefab_spawn_right, Vector3.zero, Quaternion.identity, obj_SpawnGroup).GetComponent<Obj_Spawn_Right>();
-        obj_Spawn_Right.Init();
+        obj_Spawn_Right.Init(this);
     }
 
     /// <summary>
